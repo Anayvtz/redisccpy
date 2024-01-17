@@ -2,6 +2,8 @@
 import socket
 import threading
 import select
+import commands
+import memdb
 
 class srvr:
 
@@ -17,6 +19,7 @@ class redis_srvr(srvr):
 	def __init__(self):
 		self.port = 6379
 		self.ip = "127.0.0.1"
+		self.memdb = memdb.memdb()
 
 	def bind_socket(self):
 		self.skt.bind((self.ip,self.port))
@@ -25,11 +28,20 @@ class redis_srvr(srvr):
 		self.skt.listen(0)
 
 	def conn_mgr(self,clntSkt,cltAddr):
-		while True:
-			data = clntSkt.recv(1024)
-			if not data:
-				break
-			print ("recv data:" + str(data))
+		#while True:
+		data = clntSkt.recv(1024)
+		if not data:
+			print("no data recieved")
+		#		break
+		print ("recv data:" + str(data))
+
+		cmdmgr = commands.cmds_srvr()
+		strdata = data.decode()
+		print("datastr:"+strdata)
+		rspns = cmdmgr.process_cmd_and_response(strdata,self.memdb)
+		print("process response:" + rspns)
+		if rspns != "":
+			clntSkt.send(rspns.encode())
 		
 	def activate(self):
 		self.open_socket()

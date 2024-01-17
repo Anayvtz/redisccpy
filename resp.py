@@ -1,7 +1,7 @@
 
 from enum import Enum
 
-DELIM = "\\r\\n"
+DELIM = "\r\n"
 
 class FirstCh(Enum):
 	SIMPLE_STR = "+"
@@ -49,10 +49,18 @@ class deserialize:
 		pass
 	
 	def simple_str(str2dsrlz):
+		first = str2dsrlz[0:1]
+		if first != FirstCh.SIMPLE_STR.value:
+			print("simple_str dsrlzd[0]:"+str(first))
+			return ""
 		dsrlzd = str2dsrlz[1:len(str2dsrlz)-len(DELIM)]
 		return dsrlzd
 
 	def bulk_str(str2dsrlzd):
+		first = str2dsrlzd[0:1]
+		if first != FirstCh.BULK_STR.value:
+			print("bulk_str dsrlzd[0]:"+str(first))
+			return ""
 		indx = str2dsrlzd.find(DELIM)
 		strlen = str2dsrlzd[1:indx]
 		ilen = int(strlen)
@@ -60,21 +68,30 @@ class deserialize:
 		return token
 
 	def err(str2dsrlzd):
+		if str2dsrlzd[0] != FirstCh.ERR.value:
+			return ""
 		indx = str2dsrlzd.find(DELIM)
 		token = str2dsrlzd[1:indx]
 		return token
 
 	def integer(str2dsrlzd):
+		if str2dsrlzd[0] != FirstCh.INTEGER.value:
+			return ""
 		indx = str2dsrlzd.find(DELIM)
 		token = str2dsrlzd[1:indx]
 		return int(token)
 		
 	def arr(str2dsrlzd):
+		first = str2dsrlzd[0:1]
+		if first != FirstCh.ARR.value:
+			print("arr dsrlzd[0]:"+ str(first) + " firstCh.arr:"+FirstCh.ARR.value)
+			return ""
 		indx = str2dsrlzd.find(DELIM)
 		arrlen = str2dsrlzd[1:indx]
-		print ("arr len "+arrlen)
+		print ("arr len:"+arrlen+":")
+		ilen=int(arrlen)
 		lst= []
-		for ix in range(int(arrlen)):
+		for ix in range(ilen):
 			indx += len(DELIM) + 1
 			endix = str2dsrlzd[indx:len(str2dsrlzd)].find(DELIM)
 			print("indx:"+str(indx))

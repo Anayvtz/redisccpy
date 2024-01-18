@@ -1,4 +1,7 @@
 
+import timer_wheel
+from multiprocessing import Condition
+
 INITIAL_CAPACITY = 1024
 
 class hash_node:
@@ -40,6 +43,8 @@ class hash_table:
 	def find(self,key):
 		indx = self.hash_key(key)
 		node = self.buckets[indx]
+		if node is None:
+			return None
 		while node is not None and node.key != key:
 			node = node.next
 		if node is None:
@@ -48,6 +53,7 @@ class hash_table:
 			return node.value
 
 	def remove(self,key):
+		print("about to remove from hash key:"+key)
 		indx = self.hash_key(key)
 		node = self.buckets[indx]
 		prev = None
@@ -55,13 +61,19 @@ class hash_table:
 			prev = node
 			node = node.next
 		if node is None:
+			print("key:"+key+" not found. didnt remove")
 			return None
 		else:
 			self.size -= 1
 			result = node.value
 			if prev is None:
-				node = None
+				print("in remove from hash. prev is None. remove first")
+				if node.next is not None:
+					self.buckets[indx] = node.next
+				else:
+					self.buckets[indx] = hash_node(None,None)
 			else:
+				print("ABOUT to RMV key:"+key)
 				prev.next = prev.next.next
 			return result
 
@@ -69,3 +81,9 @@ class hash_table:
 class memdb(hash_table):
 	def __init__(self):
 		super().__init__()
+		self.tmrw = timer_wheel.timer_wheel(self)
+
+	def insert_with_expire(self,key,value,expiresec):
+		self.insert(key,value)
+		self.tmrw.insert(key,expiresec)
+

@@ -84,6 +84,7 @@ class cmds_srvr(commands):
 
 			case "SETEX":
 				print("SETEX cmd")
+				return self.process_setex_and_response(cmdstr,memdb)
 
 		return ""
 
@@ -102,11 +103,25 @@ class cmds_srvr(commands):
 		srlzd = rsp.srlz("OK")
 		return srlzd
 
+	def process_setex_and_response(self,cmdstr,memdb):
+		rsp = resp.resp()
+		lst = rsp.dsrlz_arr(cmdstr)
+		for item in lst:
+			print("setex item:"+item)
+		memdb.insert_with_expire(lst[1],lst[3],lst[2])
+		srlzd = rsp.srlz("OK")
+		return srlzd
+
 	def process_get_and_response(self,cmdstr,memdb):
 		rsp = resp.resp()
 		lst = rsp.dsrlz_arr(cmdstr)
 		for item in lst:
 			print("get item:"+item)
-		getval = memdb.find(lst[1])
+		getval = memdb.find(str(lst[1]))
+		if getval == None:
+			print("memdb.find returned None on key:"+lst[1])
+			errmsg = "Key "+lst[1]+" not found"
+			errrspns = rsp.srlz_err(errmsg)
+			return errrspns
 		rspns = rsp.srlz(getval)
 		return rspns
